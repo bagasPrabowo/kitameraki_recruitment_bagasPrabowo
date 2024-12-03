@@ -1,0 +1,554 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Task Manager API",
+        "description": "API for managing tasks",
+        "termsOfService": "",
+        "version": "1.0.0"
+    },
+    "servers": [],
+    "components": {
+        "schemas": {
+            "Task": {
+                "description": "A Task Type",
+                "required": [
+                    "id",
+                    "title",
+                    "status"
+                ],
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "description": "Unique ID of the task",
+                        "type": "string"
+                    },
+                    "title": {
+                        "description": "Title of the task",
+                        "type": "string"
+                    },
+                    "description": {
+                        "description": "Description of the task",
+                        "type": "string"
+                    },
+                    "status": {
+                        "description": "Status of the task (todo|in-progress|completed)",
+                        "type": "string"
+                    },
+                    "priority": {
+                        "description": "Priority of the task (low|medium|high)",
+                        "type": "string"
+                    },
+                    "tags": {
+                        "description": "Tags associated with the task",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "dueDate": {
+                        "description": "Due date and time for the task",
+                        "type": "string"
+                    }
+                }
+            },
+            "Meta": {
+                "description": "A Meta type",
+                "type": "object",
+                "properties": {
+                    "totalCount": {
+                        "description": "Total count of items (optional, for paginated responses)",
+                        "type": "number"
+                    },
+                    "page": {
+                        "description": "Current page (optional, for paginated responses)",
+                        "type": "number"
+                    },
+                    "totalPages": {
+                        "description": "Total number of pages (optional, for paginated responses)",
+                        "type": "number"
+                    }
+                }
+            },
+            "ApiResponseTasks": {
+                "description": "An ApiResponse Multiple Task Type",
+                "required": [
+                    "message"
+                ],
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "description": "A message describing the outcome of the operation",
+                        "type": "string"
+                    },
+                    "data": {
+                        "description": "The data returned by the API (could be an array or object depending on the route)",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Task"
+                        }
+                    },
+                    "meta": {
+                        "description": "Metadata for pagination (optional)",
+                        "$ref": "#/components/schemas/Meta"
+                    }
+                }
+            },
+            "ApiResponseTask": {
+                "description": "A Single Task Type",
+                "required": [
+                    "message",
+                    "data"
+                ],
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "description": "A message describing the outcome of the operation",
+                        "type": "string"
+                    },
+                    "data": {
+                        "description": "Single task details",
+                        "$ref": "#/components/schemas/Task"
+                    }
+                }
+            },
+            "Failed": {
+                "description": "A Failed Delete Type",
+                "required": [
+                    "id",
+                    "error"
+                ],
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "description": "The ID of the task that failed to delete",
+                        "type": "string"
+                    },
+                    "error": {
+                        "description": "The error message",
+                        "type": "string"
+                    }
+                }
+            },
+            "BulkDeleteResponse": {
+                "description": "A BulkDeleteResponse Type",
+                "type": "object",
+                "properties": {
+                    "deleted": {
+                        "description": "List of successfully deleted task IDs",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "failed": {
+                        "description": "List of tasks that failed to delete with error message",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Failed"
+                        }
+                    }
+                }
+            },
+            "ApiResponseBulkDelete": {
+                "description": "",
+                "required": [
+                    "message",
+                    "data"
+                ],
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "description": "A message describing the outcome of the operation",
+                        "type": "string"
+                    },
+                    "data": {
+                        "description": "Bulk delete response",
+                        "$ref": "#/components/schemas/BulkDeleteResponse"
+                    }
+                }
+            },
+            "ApiResponseNotFound": {
+                "description": "",
+                "required": [
+                    "message"
+                ],
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "description": "A message describing the outcome of the operation",
+                        "type": "string"
+                    }
+                }
+            },
+            "ValidationError": {
+                "description": "",
+                "required": [
+                    "message",
+                    "path"
+                ],
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "description": "A message describing the validation error",
+                        "type": "string"
+                    },
+                    "path": {
+                        "description": "The path of the field that failed validation",
+                        "type": "string"
+                    }
+                }
+            },
+            "ApiResponseValidationError": {
+                "description": "",
+                "required": [
+                    "message",
+                    "details"
+                ],
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "description": "A message describing the validation error",
+                        "type": "string"
+                    },
+                    "details": {
+                        "description": "List of validation errors",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ValidationError"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "paths": {
+        "/api/tasks": {
+            "get": {
+                "deprecated": false,
+                "summary": "Get all tasks",
+                "security": [],
+                "responses": {
+                    "200": {
+                        "description": "List of tasks",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseTasks"
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Search term for tasks",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filter by task status (e.g. todo, in-progress, completed)",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "description": "Sort tasks by a field (e.g. createdAt)",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "priority",
+                        "in": "query",
+                        "description": "Filter by task priority (low|medium|high)",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number for pagination (default: 1)",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Number of tasks per page (default: 10)",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "number"
+                        }
+                    }
+                ],
+                "tags": [
+                    "Tasks"
+                ]
+            },
+            "post": {
+                "deprecated": false,
+                "summary": "Create a new task",
+                "security": [],
+                "responses": {
+                    "201": {
+                        "description": "Task successfully created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseTask"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [],
+                "tags": [
+                    "Tasks"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Task"
+                            }
+                        }
+                    },
+                    "description": "Task details",
+                    "required": true
+                }
+            }
+        },
+        "/api/tasks/{id}": {
+            "put": {
+                "deprecated": false,
+                "summary": "Update an existing task by ID",
+                "security": [],
+                "responses": {
+                    "200": {
+                        "description": "Task successfully updated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseTask"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseValidationError"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Task not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseNotFound"
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Task ID",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "tags": [
+                    "Tasks"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Task"
+                            }
+                        }
+                    },
+                    "description": "Updated task details",
+                    "required": true
+                }
+            },
+            "delete": {
+                "deprecated": false,
+                "summary": "Delete a task by ID",
+                "security": [],
+                "responses": {
+                    "200": {
+                        "description": "Task successfully deleted",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseTask"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Task not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseNotFound"
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Task ID",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "tags": [
+                    "Tasks"
+                ]
+            },
+            "get": {
+                "deprecated": false,
+                "summary": "Get a task by ID",
+                "security": [],
+                "responses": {
+                    "200": {
+                        "description": "Task details",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseTask"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Task not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseNotFound"
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Task ID",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "tags": [
+                    "Tasks"
+                ]
+            }
+        },
+        "/api/tasks/bulk-delete": {
+            "delete": {
+                "deprecated": false,
+                "summary": "Bulk delete tasks",
+                "security": [],
+                "responses": {
+                    "200": {
+                        "description": "Bulk delete response with deleted task IDs",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseTask"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input (no IDs provided)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseBulkDelete"
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [],
+                "tags": [
+                    "Tasks"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "description": "List of task IDs to delete",
+                    "required": true
+                }
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Tasks",
+            "description": ""
+        }
+    ]
+}

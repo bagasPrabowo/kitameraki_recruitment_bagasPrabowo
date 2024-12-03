@@ -1,5 +1,6 @@
 import { randomUUID } from 'crypto';
 import { Schema, model } from 'mongoose';
+import { ITask } from '../types/task';
 
 const taskSchema = new Schema({
   id: {
@@ -46,6 +47,6 @@ const taskSchema = new Schema({
   versionKey: false
 });
 
-const Task = model('Task', taskSchema);
+const Task = model<ITask>('Task', taskSchema);
 
 export default Task;

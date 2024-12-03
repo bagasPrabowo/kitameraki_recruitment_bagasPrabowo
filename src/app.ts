@@ -1,38 +1,36 @@
-import express, { urlencoded } from 'express';
+import 'dotenv/config';
+import express, { urlencoded, Express } from 'express';
 import { connect } from 'mongoose';
 import session from 'express-session';
-import connectMongo from 'connect-mongo';
+import MongoStore from 'connect-mongo';
 import cors from 'cors';
 import logger from './logger';
 import taskRoute from './routes/task';
 
-const app = express();
+const app: Express = express();
+const port: string = process.env.PORT || '3000';
+const mongoUrl: string = process.env.MONGODB_URL || "";
+const sessionSecret: string = process.env.SESSION_SECRET || "";
 
 app.use(cors());
 app.use(express.json());
 app.use(urlencoded({ extended: true }))
 
 app.use(session({
-  secret: process.env.SESSION_SECRET as string,
+  secret: sessionSecret,
   resave: false,
   saveUninitialized: false,
-  store: connectMongo.create({ mongoUrl: process.env.MONGODB_URL })
+  store: MongoStore.create({ mongoUrl: mongoUrl })
 }))
-
-app.get('/', (request, response) => {
-    console.log(request);
-    response.status(202).send(
-      `Welcome to Task Manager`);
-  });
 
 app.use('/api/tasks', taskRoute);
 
 connect(
-  process.env.MONGODB_URL as string
+  mongoUrl
 ).then(result => {
   logger.info('Connected to MongoDB')
-  app.listen(process.env.PORT || 3000, () => {
-    logger.info(`Server is running on port ${process.env.PORT || 3000}`)
+  app.listen(port, () => {
+    logger.info(`Server is running on port ${port}`)
   });
 })
   .catch(err => {

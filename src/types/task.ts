@@ -9,3 +9,12 @@ export interface ITask extends Document {
     status: string;
     tags: string[];
 }
+
+export interface TaskQuery {
+    search?: string;
+    status?: string;
+    priority?: string;
+    sort?: string;
+    page?: string;
+    limit?: string;
+}

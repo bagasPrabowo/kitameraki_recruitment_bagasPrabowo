@@ -4,9 +4,8 @@ import { ITask } from '../types/task';
 
 const taskSchema = new Schema({
   id: {
-    type: Schema.Types.UUID,
+    type: String,
     required: true,
-    format: "uuid",
     unique: true,
     description: 'Unique identifier for the task',
     default: () => randomUUID()

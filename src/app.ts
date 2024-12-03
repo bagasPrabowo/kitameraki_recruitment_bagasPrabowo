@@ -1,11 +1,13 @@
 import 'dotenv/config';
-import express, { urlencoded, Express } from 'express';
+import express, { urlencoded, Express, NextFunction, Response, Request } from 'express';
 import { connect } from 'mongoose';
 import session from 'express-session';
 import MongoStore from 'connect-mongo';
 import cors from 'cors';
 import logger from './logger';
 import taskRoute from './routes/task';
+import errorHandler from './middleware/errorHandler';
+import expressJSDocSwagger from 'express-jsdoc-swagger';
 
 const app: Express = express();
 const port: string = process.env.PORT || '3000';
@@ -24,6 +26,25 @@ app.use(session({
 }))
 
 app.use('/api/tasks', taskRoute);
+
+const options = {
+  info: {
+    version: "1.0.0",
+    title: "Task Manager API",
+    description: "API for managing tasks",
+  },
+  baseDir: __dirname,
+  filesPattern: ["./routes/**/*.ts", "./controllers/**/*.ts", "./types/**/*.ts"],
+  fileName: './swagger.json',
+  swaggerUIPath: "/api-docs",
+  exposeSwaggerUI: true,
+  exposeApiDocs: false,
+  apiDocsPath: "/v1/api-docs",
+};
+
+expressJSDocSwagger(app)(options);
+
+app.use(errorHandler);
 
 connect(
   mongoUrl

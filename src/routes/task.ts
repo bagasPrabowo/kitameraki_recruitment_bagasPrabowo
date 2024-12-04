@@ -1,16 +1,19 @@
 import { Router } from "express";
 import {
-    bulkDelete,
-    deleteTask,
-    getTask,
-    getTaskById,
-    postTask,
-    updateTask
+  bulkDelete,
+  deleteTask,
+  getTask,
+  getTaskById,
+  postTask,
+  updateTask
 } from "../controllers/task";
 import { validate } from "../middleware/validate";
 import { taskSchema } from "../validations/task";
+import { authenticate } from "../middleware/auth";
 
 const router: Router = Router();
+
+router.use(authenticate)
 
 /// Annotations used for Swagger OpenAPI Documentation
 /**
@@ -70,12 +73,6 @@ const router: Router = Router();
  */
 
 /**
- * A Not Found Type
- * @typedef {object} ApiResponseNotFound
- * @property {string} message.required - A message describing the outcome of the operation
- */
-
-/**
  * A Validation Error Type
  * @typedef {object} ValidationError
  * @property {string} message.required - A message describing the validation error
@@ -99,7 +96,9 @@ const router: Router = Router();
  * @param {string} priority.query - Filter by task priority (low|medium|high)
  * @param {number} page.query - Page number for pagination (default: 1)
  * @param {number} limit.query - Number of tasks per page (default: 10)
+ * @param {string} x-user-token.header.required - User token
  * @return {ApiResponseTasks} 200 - List of tasks
+ * @return {DefaultResponse} 401 - Unauthorized
  */
 router.get('/', getTask);
 
@@ -108,8 +107,10 @@ router.get('/', getTask);
  * @summary Create a new task
  * @tags Tasks
  * @param {Task} request.body.required - Task details
+ * @param {string} x-user-token.header.required - User token
  * @return {ApiResponseTask} 201 - Task successfully created
  * @return {ApiResponseValidationError} 400 - Validation error
+ * @return {DefaultResponse} 401 - Unauthorized
  */
 router.post('/', validate(taskSchema), postTask);
 
@@ -119,9 +120,11 @@ router.post('/', validate(taskSchema), postTask);
  * @tags Tasks
  * @param {string} id.path.required - Task ID
  * @param {Task} request.body.required - Updated task details
+ * @param {string} x-user-token.header.required - User token
  * @return {ApiResponseTask} 200 - Task successfully updated
- * @return {ApiResponseNotFound} 404 - Task not found
+ * @return {DefaultResponse} 404 - Task not found
  * @return {ApiResponseValidationError} 400 - Validation error
+ * @return {DefaultResponse} 401 - Unauthorized
  */
 router.put('/:id', validate(taskSchema), updateTask);
 
@@ -130,8 +133,10 @@ router.put('/:id', validate(taskSchema), updateTask);
  * @summary Bulk delete tasks
  * @tags Tasks
  * @param {array<string>} request.body.ids.required - List of task IDs to delete
+ * @param {string} x-user-token.header.required - User token
  * @return {ApiResponseTask} 200 - Bulk delete response with deleted task IDs
  * @return {ApiResponseBulkDelete} 400 - Invalid input (no IDs provided)
+ * @return {DefaultResponse} 401 - Unauthorized
  */
 router.delete('/bulk-delete', bulkDelete);
 
@@ -140,8 +145,10 @@ router.delete('/bulk-delete', bulkDelete);
  * @summary Delete a task by ID
  * @tags Tasks
  * @param {string} id.path.required - Task ID
+ * @param {string} x-user-token.header.required - User token
  * @return {ApiResponseTask} 200 - Task successfully deleted
- * @return {ApiResponseNotFound} 404 - Task not found
+ * @return {DefaultResponse} 404 - Task not found
+ * @return {DefaultResponse} 401 - Unauthorized
  */
 router.delete('/:id', deleteTask);
 
@@ -150,8 +157,10 @@ router.delete('/:id', deleteTask);
  * @summary Get a task by ID
  * @tags Tasks
  * @param {string} id.path.required - Task ID
+ * @param {string} x-user-token.header.required - User token
  * @return {ApiResponseTask} 200 - Task details
- * @return {ApiResponseNotFound} 404 - Task not found
+ * @return {DefaultResponse} 404 - Task not found
+ * @return {DefaultResponse} 401 - Unauthorized
  */
 router.get('/:id', getTaskById);
 

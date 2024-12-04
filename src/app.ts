@@ -6,8 +6,10 @@ import MongoStore from 'connect-mongo';
 import cors from 'cors';
 import logger from './utils/logger';
 import taskRoute from './routes/task';
+import authRoute from './routes/auth';
 import errorHandler from './middleware/errorHandler';
 import expressJSDocSwagger from 'express-jsdoc-swagger';
+import cleanBlacklistCron from './scheduler/blacklist';
 
 const app: Express = express();
 const port: string = process.env.PORT || '3000';
@@ -26,6 +28,7 @@ app.use(session({
 }))
 
 app.use('/api/tasks', taskRoute);
+app.use('/api/auth', authRoute);
 
 const options = {
   info: {
@@ -50,6 +53,10 @@ connect(
   mongoUrl
 ).then(result => {
   logger.info('Connected to MongoDB')
+
+  // Start cron job for clean the expired token on blacklist
+  cleanBlacklistCron()
+
   app.listen(port, () => {
     logger.info(`Server is running on port ${port}`)
   });

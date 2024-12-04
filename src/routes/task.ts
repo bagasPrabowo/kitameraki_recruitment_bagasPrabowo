@@ -126,16 +126,6 @@ router.post('/', validate(taskSchema), postTask);
 router.put('/:id', validate(taskSchema), updateTask);
 
 /**
- * DELETE /api/tasks/{id}
- * @summary Delete a task by ID
- * @tags Tasks
- * @param {string} id.path.required - Task ID
- * @return {ApiResponseTask} 200 - Task successfully deleted
- * @return {ApiResponseNotFound} 404 - Task not found
- */
-router.delete('/:id', deleteTask);
-
-/**
  * DELETE /api/tasks/bulk-delete
  * @summary Bulk delete tasks
  * @tags Tasks
@@ -144,6 +134,16 @@ router.delete('/:id', deleteTask);
  * @return {ApiResponseBulkDelete} 400 - Invalid input (no IDs provided)
  */
 router.delete('/bulk-delete', bulkDelete);
+
+/**
+ * DELETE /api/tasks/{id}
+ * @summary Delete a task by ID
+ * @tags Tasks
+ * @param {string} id.path.required - Task ID
+ * @return {ApiResponseTask} 200 - Task successfully deleted
+ * @return {ApiResponseNotFound} 404 - Task not found
+ */
+router.delete('/:id', deleteTask);
 
 /**
  * GET /api/tasks/{id}

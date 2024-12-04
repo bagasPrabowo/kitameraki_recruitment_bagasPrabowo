@@ -4,7 +4,7 @@ import { connect } from 'mongoose';
 import session from 'express-session';
 import MongoStore from 'connect-mongo';
 import cors from 'cors';
-import logger from './logger';
+import logger from './utils/logger';
 import taskRoute from './routes/task';
 import errorHandler from './middleware/errorHandler';
 import expressJSDocSwagger from 'express-jsdoc-swagger';

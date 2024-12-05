@@ -5,12 +5,16 @@ import User from "../models/user";
 import { IUser } from "../types/user";
 import Blacklist from "../models/blacklist";
 import { asyncHandler, generateToken } from "../utils";
+import logger from "../utils/logger";
 
 export const postRegister = asyncHandler(async (req: Request, res: Response) => {
   const { email, password, username } = req.body;
 
-  // Password hashing is done in the user model
-  const user: IUser = await User.create({ email, username, password });
+  // Hashing Password
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash(password, salt);
+
+  const user: IUser = await User.create({ email, username, password: hashedPassword });
 
   res.status(201).json({ message: 'User registered successfully', data: user });
 });

@@ -9,6 +9,6 @@ export const asyncHandler = (fn: Function) =>
 // Utility to generate JWT
 export const generateToken = (id: string): string => {
   const jwtSecret = process.env.JWT_SECRET || "";
-  const jwtExpires = process.env.JWT_EXPIRES || "";
+  const jwtExpires = process.env.JWT_EXPIRES || "15m";
   return jwt.sign({ id }, jwtSecret, { expiresIn: jwtExpires });
 };

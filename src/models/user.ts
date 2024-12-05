@@ -19,7 +19,8 @@ const userSchema = new Schema({
   username: {
     type: String,
     required: [true, "Your username is required"],
-    maxlength: 100,
+    maxlength: 30,
+    minLength: 3
   },
   password: {
     type: String,
@@ -28,11 +29,6 @@ const userSchema = new Schema({
 }, {
   timestamps: true,
   versionKey: false
-});
-
-userSchema.pre("save", async function () {
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
 });
 
 const User = model<IUser>("User", userSchema);

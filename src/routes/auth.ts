@@ -1,6 +1,8 @@
 import { Router } from "express";
 import { postLogin, postLogout, postRegister } from "../controllers/auth";
 import { authenticate } from "../middleware/auth";
+import { validate } from "../middleware/validate";
+import { loginSchema, registerSchema } from "../validations/auth";
 
 const router: Router = Router();
 
@@ -47,7 +49,7 @@ const router: Router = Router();
  * @return {ApiResponseRegister} 201 - User registered successfully
  * @return {ApiResponseValidationError} 400 - Validation error
  */
-router.post('/register', postRegister);
+router.post('/register', validate(registerSchema), postRegister);
 
 /** POST /api/auth/login
  * @summary Login a user
@@ -57,7 +59,7 @@ router.post('/register', postRegister);
  * @return {DefaultResponse} 401 - User not found or Invalid Email or Password
  * @return {ApiResponseValidationError} 400 - Validation error
  */
-router.post('/login', postLogin);
+router.post('/login', validate(loginSchema), postLogin);
 
 /** POST /api/auth/logout
  * @summary Logout a user

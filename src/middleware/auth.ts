@@ -26,14 +26,13 @@ export const authenticate = async (req: AuthenticatedRequest, res: Response, nex
     return;
   }
 
-  const decoded = jwt.verify(token.split(" ")[1], jwtSecret, async (err, decoded) => {
+  jwt.verify(token.split(" ")[1], jwtSecret, async (err, decoded) => {
     if (err) {
-      logger.error(err);
       res.status(401).json({ message: "Invalid token" });
       return;
     }
 
-    const data = decoded as { id: string };
+    const data = decoded as { id: string; };
     const user: IUser | null = await User.findOne({ id: data.id });
 
     if (!user) {

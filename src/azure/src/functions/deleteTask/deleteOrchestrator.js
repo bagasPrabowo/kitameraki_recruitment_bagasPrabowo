@@ -1,5 +1,3 @@
-const df = require("durable-functions");
-
 module.exports = function* (context) {
     const input = context.df.getInput();
     const { userId, ids } = input;
@@ -9,8 +7,10 @@ module.exports = function* (context) {
     }
 
     const results = [];
-    for(const id of ids) {
-        results.push(yield context.df.callActivity("deleteT", { userId, id }));
+    for (const id of ids) {
+        context.log(`Calling taskDelete with userId: ${userId}, id: ${id}`);
+        const result = yield context.df.callActivity("taskDelete", { userId, id });
+        results.push(result);
     }
 
     return results;

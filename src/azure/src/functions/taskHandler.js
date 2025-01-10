@@ -12,8 +12,9 @@ const updateTask = require('./updateTask');
 
 df.app.orchestration('deleteOrchestrator', deleteOrchestrator);
 
-df.app.activity('deleteT', deleteActivity);
-
+df.app.activity('taskDelete', {
+    handler:deleteActivity
+});
 
 app.http('deleteStatus', {
     methods: ['GET'],

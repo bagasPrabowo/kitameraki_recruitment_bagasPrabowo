@@ -3,13 +3,12 @@ const { CosmosClient, PartitionKeyDefinitionVersion, IndexingMode } = require('@
 
 // Cosmos DB configuration
 const endpoint = process.env.CosmosDBEndpoint;
-const key = process.env.CosmosDBKey;
 const databaseName = process.env.CosmosDBDatabase;
 const containerName = process.env.CosmosDBContainer;
 
 // Initialize Cosmos Client
 async function dbConfig() {
-    const cosmosClient = new CosmosClient({ endpoint, key });
+    const cosmosClient = new CosmosClient(endpoint);
     const { database } = await cosmosClient.databases.createIfNotExists({ id: databaseName });
     const containerDefinition = {
         id: containerName,

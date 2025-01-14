@@ -1,16 +1,17 @@
 // config/database.js
-const { CosmosClient, PartitionKeyDefinitionVersion, IndexingMode } = require('@azure/cosmos');
+import { CosmosClient, PartitionKeyDefinitionVersion, IndexingMode, ContainerDefinition } from '@azure/cosmos';
 
 // Cosmos DB configuration
-const endpoint = process.env.CosmosDBEndpoint;
-const databaseName = process.env.CosmosDBDatabase;
-const containerName = process.env.CosmosDBContainer;
+const endpoint = process.env.CosmosDBEndpoint || "";
+const databaseName = process.env.CosmosDBDatabase || "";
+const containerName = process.env.CosmosDBContainer || "";
+
+const cosmosClient = new CosmosClient(endpoint);
 
 // Initialize Cosmos Client
 async function dbConfig() {
-    const cosmosClient = new CosmosClient(endpoint);
     const { database } = await cosmosClient.databases.createIfNotExists({ id: databaseName });
-    const containerDefinition = {
+    const containerDefinition: ContainerDefinition = {
         id: containerName,
         partitionKey: {
             paths: ["/userId"],
@@ -44,4 +45,4 @@ async function dbConfig() {
     return container
 }
 
-module.exports = { dbConfig };
+export default dbConfig;

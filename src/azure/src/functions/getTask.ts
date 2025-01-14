@@ -1,6 +1,9 @@
-module.exports = async (request, context, container) => {
-    const { userId, priority, search, status, size = 10 } = request.params;
-    const continueToken = request.headers.get('x-ms-continuation');
+import { Container, SqlQuerySpec } from "@azure/cosmos";
+import { HttpRequest, HttpResponse, HttpResponseInit, InvocationContext } from "@azure/functions";
+
+export default async (request: HttpRequest, context:InvocationContext, container: Container) => {
+    const { userId, priority, search, status, size = '10' } = request.params;
+    const continueToken = request.headers.get('x-ms-continuation') ? request.headers.get('x-ms-continuation')! : undefined;
     if (!userId) {
         return {
             status: 400,
@@ -32,28 +35,31 @@ module.exports = async (request, context, container) => {
     }
 
     query += ' ORDER BY c.cp_index ASC';
+    const itemSize = parseInt(size);
 
     const { resources: tasks, continuationToken, hasMoreResults } = await container.items
         .query(
-            { query, parameters },
+            { query, parameters } as SqlQuerySpec,
             {
                 partitionKey: userId,
-                maxItemCount: size,
+                maxItemCount: itemSize,
                 continuationToken: continueToken,
             }
         )
         .fetchNext();
 
-    return {
+    const response = new HttpResponse ({
         status: 200,
-        headers: {
-            "x-ms-continuation": continuationToken || null,
-        },
         jsonBody: {
             success: true,
             tasks: tasks,
             hasMoreResults: hasMoreResults,
             continuationToken: continuationToken
         }
-    };
+    });
+    response.headers.set(
+        "x-ms-continuation", (continuationToken),
+    )
+
+    return response;
 }

@@ -1,6 +1,7 @@
-const df = require("durable-functions");
+import { HttpRequest, InvocationContext } from '@azure/functions';
+import * as df from 'durable-functions';
 
-module.exports = async function (request, context) {
+export default async function (request: HttpRequest, context: InvocationContext) {
     const instanceId = request.params.instanceId;
 
     if (!instanceId) {

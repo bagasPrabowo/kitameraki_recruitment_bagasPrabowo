@@ -1,6 +1,6 @@
-const {dbConfig} = require('../config/database')
+import dbConfig from '../config/database';
 
-async function getNextId(userId) {
+async function getNextId(userId: string) {
     const container = await dbConfig();
     const { resources: result } = await container.items
         .query("SELECT TOP 1 c.cp_index FROM c ORDER BY c.cp_index DESC", { partitionKey: userId })
@@ -13,4 +13,4 @@ async function getNextId(userId) {
     }
 }
 
-module.exports = { getNextId }
+export default getNextId 

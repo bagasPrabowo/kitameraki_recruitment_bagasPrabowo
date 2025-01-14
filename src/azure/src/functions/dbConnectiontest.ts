@@ -1,5 +1,7 @@
-const { app } = require('@azure/functions');
-const { dbConfig } = require('../config/database');
+import { HttpRequest, InvocationContext } from "@azure/functions";
+
+import { app } from '@azure/functions';
+import dbConfig from '../config/database';
 
 async function testCosmosDbConnection() {
     try {
@@ -9,14 +11,14 @@ async function testCosmosDbConnection() {
         return { success: true, message: `Connected to Cosmos DB` };
     } catch (error) {
         console.log(error)
-        return { success: false, message: `Connection failed: ${error.message}` };
+        return { success: false, message: `Connection failed: ${error}` };
     }
 }
 
 app.http('dbConnectionTest', {
     methods: ['GET'],
     authLevel: 'anonymous', // Adjust this based on security needs
-    handler: async (request, context) => {
+    handler: async (request: HttpRequest, context: InvocationContext) => {
         // Health check endpoint to test DB connection
         const connectionTestResult = await testCosmosDbConnection();
         return {

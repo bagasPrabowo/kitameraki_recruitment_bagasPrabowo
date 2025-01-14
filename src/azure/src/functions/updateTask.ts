@@ -1,5 +1,9 @@
-module.exports = async (request, context, container) => {
-    const { id, userId, ...updates } = await request.json();
+import { Container, PatchOperation } from "@azure/cosmos";
+import { HttpRequest, InvocationContext } from "@azure/functions";
+import ITask from '../models/taskDao';
+
+export default async (request: HttpRequest, context:InvocationContext, container: Container, id: string) => {
+    const { userId, ...updates } = await request.json() as ITask;
 
     if (!id || !userId || !updates || typeof updates !== 'object') {
         return {
@@ -23,7 +27,7 @@ module.exports = async (request, context, container) => {
         };
     }
 
-    const patchOperations = Object.entries(updates).map(([key, value]) => ({
+    const patchOperations: PatchOperation[] = Object.entries(updates).map(([key, value]) => ({
         op: "set",
         path: `/${key}`,
         value

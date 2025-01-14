@@ -1,11 +1,14 @@
-const Task = require('../models/taskDao');
-const { getNextId } = require('../utils/index');
+import { Container } from "@azure/cosmos";
+import { HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
 
-module.exports = async (request, context, container) => {
-    const { title, description, dueDate, priority, status, tags, userId } = await request.json();
+import ITask from '../models/taskDao';
+import getNextId from '../utils/index';
+
+export default async (request: HttpRequest, context: InvocationContext, container: Container): Promise<HttpResponseInit> => {
+    const { title, description, dueDate, priority, status, tags, userId } = await request.json() as ITask;
 
     if (!title || !status || !userId) {
-        return {
+        return <HttpResponseInit>{
             status: 400,
             jsonBody: {
                 success: false,
@@ -16,7 +19,7 @@ module.exports = async (request, context, container) => {
 
     const id = await getNextId(userId);
 
-    const task = new Task(
+    const task = new ITask(
         id,
         title,
         description || '',
@@ -28,6 +31,16 @@ module.exports = async (request, context, container) => {
     );
 
     const { resource: createdTask } = await container.items.create(task);
+
+    if (!createdTask) {
+        return {
+            status: 500,
+            jsonBody: {
+                success: false,
+                message: 'Task failed to create!',
+            }
+        }
+    }
 
     context.log(`Task created with id: ${createdTask.id}`);
 

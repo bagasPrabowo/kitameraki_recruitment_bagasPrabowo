@@ -9,8 +9,7 @@ internal class Program
         .ConfigureServices((context, services) =>
         {
             // Call Startup class for additional service configuration
-            var startup = new Startup();
-            startup.ConfigureServices(services);
+            Startup.ConfigureServices(services);
         })
         .Build();
 

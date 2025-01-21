@@ -63,9 +63,9 @@ namespace AzureNet.Handlers
                 var itemSize = int.TryParse(size, out var result) ? result : 10;
 
                 var queryDefinition = new QueryDefinition(query);
-                foreach (var param in parameters)
+                foreach (var (Name, Value) in parameters)
                 {
-                    queryDefinition.WithParameter(param.Name, param.Value);
+                    queryDefinition.WithParameter(Name, Value);
                 }
 
                 var queryResultSetIterator = container.GetItemQueryIterator<TaskItem>(queryDefinition, continuationToken, new QueryRequestOptions

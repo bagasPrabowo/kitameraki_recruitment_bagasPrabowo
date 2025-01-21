@@ -6,7 +6,7 @@ using AzureNet.Controllers;
 
 public class Startup
 {
-    public void ConfigureServices(IServiceCollection services)
+    public static void ConfigureServices(IServiceCollection services)
     {
         // Retrieve the Cosmos DB connection string from local.settings.json or environment variables
         var cosmosConnectionString = Environment.GetEnvironmentVariable("CosmosDBEndpoint");
@@ -16,8 +16,14 @@ public class Startup
             throw new InvalidOperationException("Cosmos DB connection string is missing in the configuration.");
         }
 
-        // Register CosmosClient as a singleton (to be reused)
-        CosmosClientOptions options = new() { AllowBulkExecution = true };
+        CosmosClientOptions options = new()
+        {
+            AllowBulkExecution = true,
+            SerializerOptions = new CosmosSerializationOptions()
+            {
+                PropertyNamingPolicy = CosmosPropertyNamingPolicy.CamelCase
+            }
+        };
         services.AddSingleton(_ => new CosmosClient(cosmosConnectionString, options));
 
         // Register DatabaseUtils for Cosmos DB operations

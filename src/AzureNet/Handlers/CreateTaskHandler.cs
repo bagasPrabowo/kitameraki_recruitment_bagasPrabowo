@@ -9,20 +9,15 @@ using Microsoft.Extensions.Logging;
 
 namespace AzureNet.Handlers
 {
-    public class CreateTaskHandler
+    public class CreateTaskHandler(CosmosClient cosmosClient)
     {
-        private readonly CosmosClient _cosmosClient;
-        private readonly CommonUtils _commonUtils;
-
-        public CreateTaskHandler(CosmosClient cosmosClient, CommonUtils commonUtils)
-        {
-            _cosmosClient = cosmosClient;
-            _commonUtils = commonUtils;
-        }
+        private readonly CosmosClient _cosmosClient = cosmosClient;
 
         public async Task<HttpResponseData> HandleAsync(HttpRequestData req, FunctionContext context)
         {
             var logger = context.GetLogger("CreateTaskHandler");
+            var dbName = Environment.GetEnvironmentVariable("CosmosDBDatabase") ?? "TaskTest";
+            var containerName = Environment.GetEnvironmentVariable("CosmosDBTaskContainer") ?? "Task";
 
             try
             {
@@ -38,8 +33,8 @@ namespace AzureNet.Handlers
                     return badRequest;
                 }
 
-                var container = _cosmosClient.GetContainer("TaskTest", "Task");
-                var id = await _commonUtils.GetNextIdAsync(task.UserId);
+                var container = _cosmosClient.GetContainer(dbName, containerName);
+                var id = await CommonUtils.GetNextIdAsync(_cosmosClient, dbName, containerName, task.UserId);
                 task.Id = id;
 
                 await container.CreateItemAsync(task, new PartitionKey(task.UserId));

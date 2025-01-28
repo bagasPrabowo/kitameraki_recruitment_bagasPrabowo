@@ -1,3 +1,4 @@
+using AzureNet;
 using Microsoft.Extensions.Hosting;
 
 internal class Program

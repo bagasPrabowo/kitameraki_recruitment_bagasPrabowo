@@ -1,6 +1,9 @@
+using Azure.Core.Serialization;
+using AzureNet.Models;
 using Microsoft.Azure.Cosmos;
 using Newtonsoft.Json;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace AzureNet.Utils;
@@ -38,5 +41,16 @@ public class CommonUtils
     public static T? ConvertCloudEventData<T>(BinaryData data)
     {
         return JsonConvert.DeserializeObject<T>(data.ToString());
+    }
+
+    public static BinaryData SerializeObject(ChangeLogData req)
+    {
+        JsonObjectSerializer customSerilizer = new(
+        new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        });
+
+        return customSerilizer.Serialize(req);
     }
 }

@@ -3,7 +3,10 @@ using Microsoft.Azure.Cosmos;
 using AzureNet.Utils;
 using AzureNet.Handlers;
 using AzureNet.Controllers;
+using Azure.Messaging.EventGrid;
+using Azure;
 
+namespace AzureNet;
 public class Startup
 {
     public static void ConfigureServices(IServiceCollection services)
@@ -34,5 +37,20 @@ public class Startup
         services.AddScoped<GetTaskHandler>();
         services.AddScoped<UpdateTaskHandler>();
         services.AddScoped<DeleteStatusHandler>();
+
+        services.AddSingleton(singleton =>
+        {
+            string eventGridTopicEndpoint =
+                Environment.GetEnvironmentVariable("EventGridTopicEndpoint")
+                ?? throw new ArgumentNullException("EventGridTopicEndpoint");
+            string eventGridCredential =
+                Environment.GetEnvironmentVariable("EventGridCredential")
+                ?? throw new ArgumentNullException("EventGridCredential");
+
+            return new EventGridPublisherClient(
+                new Uri(eventGridTopicEndpoint),
+                new AzureKeyCredential(eventGridCredential)
+            );
+        });
     }
 }

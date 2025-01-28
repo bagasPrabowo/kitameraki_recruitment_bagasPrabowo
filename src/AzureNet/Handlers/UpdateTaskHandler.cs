@@ -6,12 +6,20 @@ using AzureNet.Models;
 using System.Text.Json;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
+using AzureNet.Utils;
+using Azure.Messaging;
+using Azure.Messaging.EventGrid;
+using Newtonsoft.Json;
 
 namespace AzureNet.Handlers
 {
-    public class UpdateTaskHandler(CosmosClient cosmosClient)
+    public class UpdateTaskHandler(
+        CosmosClient cosmosClient,
+        EventGridPublisherClient eventGridClient
+    )
     {
         private readonly CosmosClient _cosmosClient = cosmosClient;
+        private readonly EventGridPublisherClient _eventGridClient = eventGridClient;
 
         public async Task<HttpResponseData> HandleAsync(HttpRequestData req, FunctionContext context, string id)
         {
@@ -19,7 +27,7 @@ namespace AzureNet.Handlers
 
             try
             {
-                var requestBody = await JsonSerializer.DeserializeAsync<TaskItem>(req.Body);
+                var requestBody = await System.Text.Json.JsonSerializer.DeserializeAsync<TaskItem>(req.Body);
                 if (requestBody == null || string.IsNullOrEmpty(requestBody.UserId) || requestBody == null)
                 {
                     var badRequest = req.CreateResponse(HttpStatusCode.BadRequest);
@@ -48,17 +56,33 @@ namespace AzureNet.Handlers
 
                 // Create patch operations
                 var patchOperations = new List<PatchOperation>();
+                List<DataChanges> dataChanges = [];
                 foreach (var update in requestBody.GetType().GetProperties())
                 {
                     var value = update.GetValue(requestBody);
                     if (value != null)
                     {
+                        var stringValue = JsonConvert.SerializeObject(value);
+                        dataChanges.Add(new DataChanges() { Path = update.Name, NewValue = stringValue });
                         patchOperations.Add(PatchOperation.Set($"/{update.Name}", value));
                     }
                 }
 
                 // Apply patch operations to the item
                 var updatedTask = await container.PatchItemAsync<TaskItem>(id, new PartitionKey(requestBody.UserId), patchOperations);
+
+                var logTask = new ChangeLogData()
+                {
+                    OldTask = existingTask.Resource,
+                    Timestamp = DateTime.UtcNow.ToString("O"),
+                    UserId = requestBody.UserId,
+                    Changes = [],
+                    Action = "update"
+                };
+                var data = CommonUtils.SerializeObject(logTask);
+                var cloudEventData = new CloudEvent($"/task/{id}", "net.task-test-app.azurewebsites.Update.Task", data);
+
+                await _eventGridClient.SendEventAsync(cloudEventData);
 
                 var successResponse = req.CreateResponse(HttpStatusCode.OK);
                 await successResponse.WriteAsJsonAsync(new

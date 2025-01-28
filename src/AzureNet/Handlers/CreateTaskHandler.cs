@@ -6,12 +6,20 @@ using AzureNet.Models;
 using Microsoft.Azure.Functions.Worker;
 using AzureNet.Utils;
 using Microsoft.Extensions.Logging;
+using Azure.Messaging;
+using System.Text.Json;
+using Azure.Core.Serialization;
+using Azure.Messaging.EventGrid;
 
 namespace AzureNet.Handlers
 {
-    public class CreateTaskHandler(CosmosClient cosmosClient)
+    public class CreateTaskHandler(
+        CosmosClient cosmosClient,
+        EventGridPublisherClient eventGridClient
+    )
     {
         private readonly CosmosClient _cosmosClient = cosmosClient;
+        private readonly EventGridPublisherClient _eventGridClient = eventGridClient;
 
         public async Task<HttpResponseData> HandleAsync(HttpRequestData req, FunctionContext context)
         {
@@ -38,6 +46,19 @@ namespace AzureNet.Handlers
                 task.Id = id;
 
                 await container.CreateItemAsync(task, new PartitionKey(task.UserId));
+
+                var logTask = new ChangeLogData()
+                {
+                    OldTask = task,
+                    Timestamp = DateTime.UtcNow.ToString("O"),
+                    UserId = task.UserId,
+                    Changes = [],
+                    Action = "create"
+                };
+                var data = CommonUtils.SerializeObject(logTask);
+                var cloudEventData = new CloudEvent("/task", "net.task-test-app.azurewebsites.Create.Task", data);
+
+                await _eventGridClient.SendEventAsync(cloudEventData);
 
                 var response = req.CreateResponse(HttpStatusCode.Created);
                 await response.WriteAsJsonAsync(new
